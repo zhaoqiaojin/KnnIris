@@ -1,6 +1,6 @@
 % Load the Iris dataset
 load_iris :-
-    csv_read_file('/Users/joyzhao/Desktop/iris.csv', [row(sepal_length,sepal_width,petal_length,petal_width,species)|Data], [functor(row)]),
+    csv_read_file('iris.csv', [row(_,_,_,_,_)|Data], [functor(row)]),
     assert_iris(Data).
 
 % Assert the Iris dataset as facts
