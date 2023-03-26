@@ -46,3 +46,37 @@ count_species(Species, Neighbors, Count) :-
     include(=(_-Species), Neighbors, Matches),
     length(Matches, Count).
 
+
+% :- <- library("ggplot2").
+
+% pca(LA):-
+%   length(LA,NP),
+%   maplist(add_cat,LA,LCat,L),
+%   L=[H|_],
+%   length(H,Comp),
+%   append(L,LLin),
+%   D =..[c|LLin],
+%   data<- matrix(D,ncol=Comp,byrow='TRUE'),
+%   pc<- prcomp(data),
+%   Data0<-pc["x"],
+%   Data0=[Data1],
+%   foldl(getn(NP),Data2,Data1,[]),!,
+%   transpose(Data2,Data),
+%   maplist(getx,Data,X),
+%   maplist(gety,Data,Y),
+%   x<- X,
+%   y<-Y,
+%   class<-LCat,
+%   <-qplot(x, y, colour=class),
+%   r_download,
+%   nl.
+
+% getn(N,LN,L,Rest):-
+%     length(LN,N),
+%     append(LN,Rest,L).
+
+% getx([X,_,_,_],X).
+
+% gety([_,Y,_,_],Y).
+
+% add_cat([X,Y,Z,W,C],C,[X,Y,Z,W]).
