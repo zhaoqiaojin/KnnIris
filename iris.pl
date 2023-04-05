@@ -59,6 +59,26 @@ count_occurrences(X, [Y|T], N) :- X \= Y, count_occurrences(X, T, N).
 :- dynamic num_folds/1.
 num_folds(5).
 
+% % Cross validation
+% cross_validate(K, Acc) :-
+%     findall(data(X,Y,Z,W,Class), data(X,Y,Z,W,Class), Data),
+%     partition(K, Data, Parts),
+%     cross_validate(K, Parts, 0, 0, Acc).
+
+% cross_validate(_, [], Acc, N, AccN) :-
+%     AccN is Acc / N.
+
+% cross_validate(K, [Test|Rest], Acc, N, AccN) :-
+%     knn_classify(K, Test, TestClass),
+%     exclude(==(Test), Rest, Train),
+%     maplist(knn_classify(K, TestClass), Train, Classes),
+%     append(Classes, Predictions),
+%     maplist(=(TestClass), Predictions, Results),
+%     sum_list(Results, Sum),
+%     N1 is N + 1,
+%     Acc1 is Acc + Sum,
+%     cross_validate(K, Rest, Acc1, N1, AccN).
+
 % Define the cross-validation function
 cross_validate(K, Score) :-
     % Get the number of folds
@@ -81,9 +101,20 @@ cross_validate(K, Score) :-
     ), FoldScores),
 
     % Compute the average score over all folds
-    sum_list(FoldScores, TotalScore),
+    sum_list_of_lists(FoldScores, TotalScore),
     length(FoldScores, NumFolds),
     Score is TotalScore / NumFolds.
+
+% sum_list_of_lists
+sum_list_of_lists(ListOfLists, Sum) :-
+    flatten(ListOfLists, FlatList),
+    sum_list(FlatList, Sum).
+
+% Helper function to exclude the nth element from a list
+exclude_nth(N, List, Result) :-
+    length(Prefix, N),
+    append(Prefix, [_|Suffix], List),
+    append(Prefix, Suffix, Result).
 
 
 % Define the predict function to predict the label of a test instance using KNN
@@ -91,10 +122,10 @@ predict(K, TrainData, Test, Label) :-
     Test = data(X,Y,Z,W,_),
     knn(K, X, Y, Z, W, Label, Neighbors),
     get_neighbors_classes(Neighbors, TrainData, Classes),
-    classify(Classes, Label),
-    format("Test instance: ~w, Predicted label: ~w~n", [Test, Label]),
-    format("Neighbors: ~w~n", [Neighbors]),
-    format("Classes: ~w~n", [Classes]).
+    classify(Classes, Label).
+    % format("Test instance: ~w, Predicted label: ~w~n", [Test, Label]),
+    % format("Neighbors: ~w~n", [Neighbors]),
+    % format("Classes: ~w~n", [Classes]).
 
 % Helper function to get the classes of the neighbors
 get_neighbors_classes([], _, []).
@@ -112,10 +143,6 @@ check_prediction(Test, PredictedLabel, Score) :-
     Test = data(_,_,_,_,TrueLabel),
     (PredictedLabel = TrueLabel -> Score = 1 ; Score = 0).
 
-% Helper function to exclude the nth element from a list
-exclude_nth(N, List, Excluded) :-
-    nth0(N, List, _, WithoutNth),
-    append(WithoutNth, Excluded).
 
 % Split a list into sublists of equal length
 split_list(List, NumSublists, Sublists) :-
@@ -138,149 +165,149 @@ data(4.9,3.0,1.4,0.2,'Iris-setosa').
 data(4.7,3.2,1.3,0.2,'Iris-setosa').
 data(4.6,3.1,1.5,0.2,'Iris-setosa').
 data(5.0,3.6,1.4,0.2,'Iris-setosa').
-data(5.4,3.9,1.7,0.4,'Iris-setosa').
-data(4.6,3.4,1.4,0.3,'Iris-setosa').
-data(5.0,3.4,1.5,0.2,'Iris-setosa').
-data(4.4,2.9,1.4,0.2,'Iris-setosa').
-data(4.9,3.1,1.5,0.1,'Iris-setosa').
-data(5.4,3.7,1.5,0.2,'Iris-setosa').
-data(4.8,3.4,1.6,0.2,'Iris-setosa').
-data(4.8,3.0,1.4,0.1,'Iris-setosa').
-data(4.3,3.0,1.1,0.1,'Iris-setosa').
-data(5.8,4.0,1.2,0.2,'Iris-setosa').
-data(5.7,4.4,1.5,0.4,'Iris-setosa').
-data(5.4,3.9,1.3,0.4,'Iris-setosa').
-data(5.1,3.5,1.4,0.3,'Iris-setosa').
-data(5.7,3.8,1.7,0.3,'Iris-setosa').
-data(5.1,3.8,1.5,0.3,'Iris-setosa').
-data(5.4,3.4,1.7,0.2,'Iris-setosa').
-data(5.1,3.7,1.5,0.4,'Iris-setosa').
-data(4.6,3.6,1.0,0.2,'Iris-setosa').
-data(5.1,3.3,1.7,0.5,'Iris-setosa').
-data(4.8,3.4,1.9,0.2,'Iris-setosa').
-data(5.0,3.0,1.6,0.2,'Iris-setosa').
-data(5.0,3.4,1.6,0.4,'Iris-setosa').
-data(5.2,3.5,1.5,0.2,'Iris-setosa').
-data(5.2,3.4,1.4,0.2,'Iris-setosa').
-data(4.7,3.2,1.6,0.2,'Iris-setosa').
-data(4.8,3.1,1.6,0.2,'Iris-setosa').
-data(5.4,3.4,1.5,0.4,'Iris-setosa').
-data(5.2,4.1,1.5,0.1,'Iris-setosa').
-data(5.5,4.2,1.4,0.2,'Iris-setosa').
-data(4.9,3.1,1.5,0.1,'Iris-setosa').
-data(5.0,3.2,1.2,0.2,'Iris-setosa').
-data(5.5,3.5,1.3,0.2,'Iris-setosa').
-data(4.9,3.1,1.5,0.1,'Iris-setosa').
-data(4.4,3.0,1.3,0.2,'Iris-setosa').
-data(5.1,3.4,1.5,0.2,'Iris-setosa').
-data(5.0,3.5,1.3,0.3,'Iris-setosa').
-data(4.5,2.3,1.3,0.3,'Iris-setosa').
-data(4.4,3.2,1.3,0.2,'Iris-setosa').
-data(5.0,3.5,1.6,0.6,'Iris-setosa').
-data(5.1,3.8,1.9,0.4,'Iris-setosa').
-data(4.8,3.0,1.4,0.3,'Iris-setosa').
-data(5.1,3.8,1.6,0.2,'Iris-setosa').
-data(4.6,3.2,1.4,0.2,'Iris-setosa').
-data(5.3,3.7,1.5,0.2,'Iris-setosa').
-data(5.0,3.3,1.4,0.2,'Iris-setosa').
+% data(5.4,3.9,1.7,0.4,'Iris-setosa').
+% data(4.6,3.4,1.4,0.3,'Iris-setosa').
+% data(5.0,3.4,1.5,0.2,'Iris-setosa').
+% data(4.4,2.9,1.4,0.2,'Iris-setosa').
+% data(4.9,3.1,1.5,0.1,'Iris-setosa').
+% data(5.4,3.7,1.5,0.2,'Iris-setosa').
+% data(4.8,3.4,1.6,0.2,'Iris-setosa').
+% data(4.8,3.0,1.4,0.1,'Iris-setosa').
+% data(4.3,3.0,1.1,0.1,'Iris-setosa').
+% data(5.8,4.0,1.2,0.2,'Iris-setosa').
+% data(5.7,4.4,1.5,0.4,'Iris-setosa').
+% data(5.4,3.9,1.3,0.4,'Iris-setosa').
+% data(5.1,3.5,1.4,0.3,'Iris-setosa').
+% data(5.7,3.8,1.7,0.3,'Iris-setosa').
+% data(5.1,3.8,1.5,0.3,'Iris-setosa').
+% data(5.4,3.4,1.7,0.2,'Iris-setosa').
+% data(5.1,3.7,1.5,0.4,'Iris-setosa').
+% data(4.6,3.6,1.0,0.2,'Iris-setosa').
+% data(5.1,3.3,1.7,0.5,'Iris-setosa').
+% data(4.8,3.4,1.9,0.2,'Iris-setosa').
+% data(5.0,3.0,1.6,0.2,'Iris-setosa').
+% data(5.0,3.4,1.6,0.4,'Iris-setosa').
+% data(5.2,3.5,1.5,0.2,'Iris-setosa').
+% data(5.2,3.4,1.4,0.2,'Iris-setosa').
+% data(4.7,3.2,1.6,0.2,'Iris-setosa').
+% data(4.8,3.1,1.6,0.2,'Iris-setosa').
+% data(5.4,3.4,1.5,0.4,'Iris-setosa').
+% data(5.2,4.1,1.5,0.1,'Iris-setosa').
+% data(5.5,4.2,1.4,0.2,'Iris-setosa').
+% data(4.9,3.1,1.5,0.1,'Iris-setosa').
+% data(5.0,3.2,1.2,0.2,'Iris-setosa').
+% data(5.5,3.5,1.3,0.2,'Iris-setosa').
+% data(4.9,3.1,1.5,0.1,'Iris-setosa').
+% data(4.4,3.0,1.3,0.2,'Iris-setosa').
+% data(5.1,3.4,1.5,0.2,'Iris-setosa').
+% data(5.0,3.5,1.3,0.3,'Iris-setosa').
+% data(4.5,2.3,1.3,0.3,'Iris-setosa').
+% data(4.4,3.2,1.3,0.2,'Iris-setosa').
+% data(5.0,3.5,1.6,0.6,'Iris-setosa').
+% data(5.1,3.8,1.9,0.4,'Iris-setosa').
+% data(4.8,3.0,1.4,0.3,'Iris-setosa').
+% data(5.1,3.8,1.6,0.2,'Iris-setosa').
+% data(4.6,3.2,1.4,0.2,'Iris-setosa').
+% data(5.3,3.7,1.5,0.2,'Iris-setosa').
+% data(5.0,3.3,1.4,0.2,'Iris-setosa').
 data(7.0,3.2,4.7,1.4,'Iris-versicolor').
 data(6.4,3.2,4.5,1.5,'Iris-versicolor').
 data(6.9,3.1,4.9,1.5,'Iris-versicolor').
 data(5.5,2.3,4.0,1.3,'Iris-versicolor').
 data(6.5,2.8,4.6,1.5,'Iris-versicolor').
-data(5.7,2.8,4.5,1.3,'Iris-versicolor').
-data(6.3,3.3,4.7,1.6,'Iris-versicolor').
-data(4.9,2.4,3.3,1.0,'Iris-versicolor').
-data(6.6,2.9,4.6,1.3,'Iris-versicolor').
-data(5.2,2.7,3.9,1.4,'Iris-versicolor').
-data(5.0,2.0,3.5,1.0,'Iris-versicolor').
-data(5.9,3.0,4.2,1.5,'Iris-versicolor').
-data(6.0,2.2,4.0,1.0,'Iris-versicolor').
-data(6.1,2.9,4.7,1.4,'Iris-versicolor').
-data(5.6,2.9,3.6,1.3,'Iris-versicolor').
-data(6.7,3.1,4.4,1.4,'Iris-versicolor').
-data(5.6,3.0,4.5,1.5,'Iris-versicolor').
-data(5.8,2.7,4.1,1.0,'Iris-versicolor').
-data(6.2,2.2,4.5,1.5,'Iris-versicolor').
-data(5.6,2.5,3.9,1.1,'Iris-versicolor').
-data(5.9,3.2,4.8,1.8,'Iris-versicolor').
-data(6.1,2.8,4.0,1.3,'Iris-versicolor').
-data(6.3,2.5,4.9,1.5,'Iris-versicolor').
-data(6.1,2.8,4.7,1.2,'Iris-versicolor').
-data(6.4,2.9,4.3,1.3,'Iris-versicolor').
-data(6.6,3.0,4.4,1.4,'Iris-versicolor').
-data(6.8,2.8,4.8,1.4,'Iris-versicolor').
-data(6.7,3.0,5.0,1.7,'Iris-versicolor').
-data(6.0,2.9,4.5,1.5,'Iris-versicolor').
-data(5.7,2.6,3.5,1.0,'Iris-versicolor').
-data(5.5,2.4,3.8,1.1,'Iris-versicolor').
-data(5.5,2.4,3.7,1.0,'Iris-versicolor').
-data(5.8,2.7,3.9,1.2,'Iris-versicolor').
-data(6.0,2.7,5.1,1.6,'Iris-versicolor').
-data(5.4,3.0,4.5,1.5,'Iris-versicolor').
-data(6.0,3.4,4.5,1.6,'Iris-versicolor').
-data(6.7,3.1,4.7,1.5,'Iris-versicolor').
-data(6.3,2.3,4.4,1.3,'Iris-versicolor').
-data(5.6,3.0,4.1,1.3,'Iris-versicolor').
-data(5.5,2.5,4.0,1.3,'Iris-versicolor').
-data(5.5,2.6,4.4,1.2,'Iris-versicolor').
-data(6.1,3.0,4.6,1.4,'Iris-versicolor').
-data(5.8,2.6,4.0,1.2,'Iris-versicolor').
-data(5.0,2.3,3.3,1.0,'Iris-versicolor').
-data(5.6,2.7,4.2,1.3,'Iris-versicolor').
-data(5.7,3.0,4.2,1.2,'Iris-versicolor').
-data(5.7,2.9,4.2,1.3,'Iris-versicolor').
-data(6.2,2.9,4.3,1.3,'Iris-versicolor').
-data(5.1,2.5,3.0,1.1,'Iris-versicolor').
-data(5.7,2.8,4.1,1.3,'Iris-versicolor').
+% data(5.7,2.8,4.5,1.3,'Iris-versicolor').
+% data(6.3,3.3,4.7,1.6,'Iris-versicolor').
+% data(4.9,2.4,3.3,1.0,'Iris-versicolor').
+% data(6.6,2.9,4.6,1.3,'Iris-versicolor').
+% data(5.2,2.7,3.9,1.4,'Iris-versicolor').
+% data(5.0,2.0,3.5,1.0,'Iris-versicolor').
+% data(5.9,3.0,4.2,1.5,'Iris-versicolor').
+% data(6.0,2.2,4.0,1.0,'Iris-versicolor').
+% data(6.1,2.9,4.7,1.4,'Iris-versicolor').
+% data(5.6,2.9,3.6,1.3,'Iris-versicolor').
+% data(6.7,3.1,4.4,1.4,'Iris-versicolor').
+% data(5.6,3.0,4.5,1.5,'Iris-versicolor').
+% data(5.8,2.7,4.1,1.0,'Iris-versicolor').
+% data(6.2,2.2,4.5,1.5,'Iris-versicolor').
+% data(5.6,2.5,3.9,1.1,'Iris-versicolor').
+% data(5.9,3.2,4.8,1.8,'Iris-versicolor').
+% data(6.1,2.8,4.0,1.3,'Iris-versicolor').
+% data(6.3,2.5,4.9,1.5,'Iris-versicolor').
+% data(6.1,2.8,4.7,1.2,'Iris-versicolor').
+% data(6.4,2.9,4.3,1.3,'Iris-versicolor').
+% data(6.6,3.0,4.4,1.4,'Iris-versicolor').
+% data(6.8,2.8,4.8,1.4,'Iris-versicolor').
+% data(6.7,3.0,5.0,1.7,'Iris-versicolor').
+% data(6.0,2.9,4.5,1.5,'Iris-versicolor').
+% data(5.7,2.6,3.5,1.0,'Iris-versicolor').
+% data(5.5,2.4,3.8,1.1,'Iris-versicolor').
+% data(5.5,2.4,3.7,1.0,'Iris-versicolor').
+% data(5.8,2.7,3.9,1.2,'Iris-versicolor').
+% data(6.0,2.7,5.1,1.6,'Iris-versicolor').
+% data(5.4,3.0,4.5,1.5,'Iris-versicolor').
+% data(6.0,3.4,4.5,1.6,'Iris-versicolor').
+% data(6.7,3.1,4.7,1.5,'Iris-versicolor').
+% data(6.3,2.3,4.4,1.3,'Iris-versicolor').
+% data(5.6,3.0,4.1,1.3,'Iris-versicolor').
+% data(5.5,2.5,4.0,1.3,'Iris-versicolor').
+% data(5.5,2.6,4.4,1.2,'Iris-versicolor').
+% data(6.1,3.0,4.6,1.4,'Iris-versicolor').
+% data(5.8,2.6,4.0,1.2,'Iris-versicolor').
+% data(5.0,2.3,3.3,1.0,'Iris-versicolor').
+% data(5.6,2.7,4.2,1.3,'Iris-versicolor').
+% data(5.7,3.0,4.2,1.2,'Iris-versicolor').
+% data(5.7,2.9,4.2,1.3,'Iris-versicolor').
+% data(6.2,2.9,4.3,1.3,'Iris-versicolor').
+% data(5.1,2.5,3.0,1.1,'Iris-versicolor').
+% data(5.7,2.8,4.1,1.3,'Iris-versicolor').
 data(6.3,3.3,6.0,2.5,'Iris-virginica').
 data(5.8,2.7,5.1,1.9,'Iris-virginica').
 data(7.1,3.0,5.9,2.1,'Iris-virginica').
 data(6.3,2.9,5.6,1.8,'Iris-virginica').
 data(6.5,3.0,5.8,2.2,'Iris-virginica').
-data(7.6,3.0,6.6,2.1,'Iris-virginica').
-data(4.9,2.5,4.5,1.7,'Iris-virginica').
-data(7.3,2.9,6.3,1.8,'Iris-virginica').
-data(6.7,2.5,5.8,1.8,'Iris-virginica').
-data(7.2,3.6,6.1,2.5,'Iris-virginica').
-data(6.5,3.2,5.1,2.0,'Iris-virginica').
-data(6.4,2.7,5.3,1.9,'Iris-virginica').
-data(6.8,3.0,5.5,2.1,'Iris-virginica').
-data(5.7,2.5,5.0,2.0,'Iris-virginica').
-data(5.8,2.8,5.1,2.4,'Iris-virginica').
-data(6.4,3.2,5.3,2.3,'Iris-virginica').
-data(6.5,3.0,5.5,1.8,'Iris-virginica').
-data(7.7,3.8,6.7,2.2,'Iris-virginica').
-data(7.7,2.6,6.9,2.3,'Iris-virginica').
-data(6.0,2.2,5.0,1.5,'Iris-virginica').
-data(6.9,3.2,5.7,2.3,'Iris-virginica').
-data(5.6,2.8,4.9,2.0,'Iris-virginica').
-data(7.7,2.8,6.7,2.0,'Iris-virginica').
-data(6.3,2.7,4.9,1.8,'Iris-virginica').
-data(6.7,3.3,5.7,2.1,'Iris-virginica').
-data(7.2,3.2,6.0,1.8,'Iris-virginica').
-data(6.2,2.8,4.8,1.8,'Iris-virginica').
-data(6.1,3.0,4.9,1.8,'Iris-virginica').
-data(6.4,2.8,5.6,2.1,'Iris-virginica').
-data(7.2,3.0,5.8,1.6,'Iris-virginica').
-data(7.4,2.8,6.1,1.9,'Iris-virginica').
-data(7.9,3.8,6.4,2.0,'Iris-virginica').
-data(6.4,2.8,5.6,2.2,'Iris-virginica').
-data(6.3,2.8,5.1,1.5,'Iris-virginica').
-data(6.1,2.6,5.6,1.4,'Iris-virginica').
-data(7.7,3.0,6.1,2.3,'Iris-virginica').
-data(6.3,3.4,5.6,2.4,'Iris-virginica').
-data(6.4,3.1,5.5,1.8,'Iris-virginica').
-data(6.0,3.0,4.8,1.8,'Iris-virginica').
-data(6.9,3.1,5.4,2.1,'Iris-virginica').
-data(6.7,3.1,5.6,2.4,'Iris-virginica').
-data(6.9,3.1,5.1,2.3,'Iris-virginica').
-data(5.8,2.7,5.1,1.9,'Iris-virginica').
-data(6.8,3.2,5.9,2.3,'Iris-virginica').
-data(6.7,3.3,5.7,2.5,'Iris-virginica').
-data(6.7,3.0,5.2,2.3,'Iris-virginica').
-data(6.3,2.5,5.0,1.9,'Iris-virginica').
-data(6.5,3.0,5.2,2.0,'Iris-virginica').
-data(6.2,3.4,5.4,2.3,'Iris-virginica').
-data(5.9,3.0,5.1,1.8,'Iris-virginica').
+% data(7.6,3.0,6.6,2.1,'Iris-virginica').
+% data(4.9,2.5,4.5,1.7,'Iris-virginica').
+% data(7.3,2.9,6.3,1.8,'Iris-virginica').
+% data(6.7,2.5,5.8,1.8,'Iris-virginica').
+% data(7.2,3.6,6.1,2.5,'Iris-virginica').
+% data(6.5,3.2,5.1,2.0,'Iris-virginica').
+% data(6.4,2.7,5.3,1.9,'Iris-virginica').
+% data(6.8,3.0,5.5,2.1,'Iris-virginica').
+% data(5.7,2.5,5.0,2.0,'Iris-virginica').
+% data(5.8,2.8,5.1,2.4,'Iris-virginica').
+% data(6.4,3.2,5.3,2.3,'Iris-virginica').
+% data(6.5,3.0,5.5,1.8,'Iris-virginica').
+% data(7.7,3.8,6.7,2.2,'Iris-virginica').
+% data(7.7,2.6,6.9,2.3,'Iris-virginica').
+% data(6.0,2.2,5.0,1.5,'Iris-virginica').
+% data(6.9,3.2,5.7,2.3,'Iris-virginica').
+% data(5.6,2.8,4.9,2.0,'Iris-virginica').
+% data(7.7,2.8,6.7,2.0,'Iris-virginica').
+% data(6.3,2.7,4.9,1.8,'Iris-virginica').
+% data(6.7,3.3,5.7,2.1,'Iris-virginica').
+% data(7.2,3.2,6.0,1.8,'Iris-virginica').
+% data(6.2,2.8,4.8,1.8,'Iris-virginica').
+% data(6.1,3.0,4.9,1.8,'Iris-virginica').
+% data(6.4,2.8,5.6,2.1,'Iris-virginica').
+% data(7.2,3.0,5.8,1.6,'Iris-virginica').
+% data(7.4,2.8,6.1,1.9,'Iris-virginica').
+% data(7.9,3.8,6.4,2.0,'Iris-virginica').
+% data(6.4,2.8,5.6,2.2,'Iris-virginica').
+% data(6.3,2.8,5.1,1.5,'Iris-virginica').
+% data(6.1,2.6,5.6,1.4,'Iris-virginica').
+% data(7.7,3.0,6.1,2.3,'Iris-virginica').
+% data(6.3,3.4,5.6,2.4,'Iris-virginica').
+% data(6.4,3.1,5.5,1.8,'Iris-virginica').
+% data(6.0,3.0,4.8,1.8,'Iris-virginica').
+% data(6.9,3.1,5.4,2.1,'Iris-virginica').
+% data(6.7,3.1,5.6,2.4,'Iris-virginica').
+% data(6.9,3.1,5.1,2.3,'Iris-virginica').
+% data(5.8,2.7,5.1,1.9,'Iris-virginica').
+% data(6.8,3.2,5.9,2.3,'Iris-virginica').
+% data(6.7,3.3,5.7,2.5,'Iris-virginica').
+% data(6.7,3.0,5.2,2.3,'Iris-virginica').
+% data(6.3,2.5,5.0,1.9,'Iris-virginica').
+% data(6.5,3.0,5.2,2.0,'Iris-virginica').
+% data(6.2,3.4,5.4,2.3,'Iris-virginica').
+% data(5.9,3.0,5.1,1.8,'Iris-virginica').
 
