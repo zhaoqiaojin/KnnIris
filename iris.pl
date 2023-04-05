@@ -54,7 +54,7 @@ count_occurrences(X, [Y|T], N) :- X \= Y, count_occurrences(X, T, N).
     % 4. trains on knn on training set and evaluates of test 
     % 5. saves accuracy score over all folds and returns the average. 
 
-k_fold_cross_validation(K, Folds, Accuracy) :-
+cross_validation(K, Folds, Accuracy) :-
     findall((X,Y,Z,W,Class), data(X,Y,Z,W,Class), Instances),
     random_permutation(Instances, ShuffledInstances),
     length(ShuffledInstances, NumInstances),
