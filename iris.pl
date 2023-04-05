@@ -111,6 +111,7 @@ num_folds(NumInstances, NumFolds, InstancesPerFold, Remainder) :-
 %     Accuracy is 1 - (NumIncorrect / NumTestInstances),
 %     evaluate_folds(Folds, K, Accuracies).
 
+
 % evaluate_folds([], _, []).
 % evaluate_folds([Fold1, Fold2, Fold3], K, Accuracies) :-
 %     evaluate_fold([Fold2, Fold3], Fold1, K, Acc1),
