@@ -1,3 +1,4 @@
+
 % Define the distance between two instances
 distance(X1,Y1,Z1,W1,X2,Y2,Z2,W2,Dist) :-
     Dist is sqrt((X1-X2)**2 + (Y1-Y2)**2 + (Z1-Z2)**2 + (W1-W2)**2).
@@ -194,4 +195,72 @@ data(6.5,3.0,5.2,2.0,'Iris-virginica').
 data(6.2,3.4,5.4,2.3,'Iris-virginica').
 data(5.9,3.0,5.1,1.8,'Iris-virginica').
 
-% implementation fo PCA on the iris dataset 
+
+% Begin Cross Validation code 
+% Steps:
+% Divide the dataset into 5-folds, we will perform 5-fold cross validation since the dataset has 150 entries 
+% 5 x 30 is a pretty good amount of data for each evaluation 
+% For each fold i, use it as the test set and the remaining folds as the training set. 
+% Then, train your KNN model on the training set and evaluate it on the test set. 
+% Save the evaluation metric, such as accuracy or F1-score, for this fold.
+% Repeat step 2 for all 5 folds, so that each fold is used as the test set once.
+% Compute the average evaluation metric over all 5 folds. 
+% This will give us the cross-validation score for our KNN model.
+% call the cross validation function using ?-cross_validate(K, Score) where K is the desire K for our KNN
+
+% Define the number of folds for cross-validation
+:- dynamic num_folds/1.
+num_folds(5).
+
+% Define the cross-validation function
+cross_validate(K, Score) :-
+    % Get the number of folds
+    num_folds(N),
+
+    % Shuffle the dataset
+    findall(data(X,Y,Z,W,Class), data(X,Y,Z,W,Class), Data),
+    random_permutation(Data, ShuffledData),
+
+    % Divide the dataset into N folds
+    split_list(ShuffledData, N, Folds),
+
+    % Evaluate the KNN model on each fold
+    findall(FoldScore, (
+        nth0(I, Folds, TestFold),
+        exclude_nth(I, Folds, TrainFolds),
+        flatten(TrainFolds, TrainData),
+        maplist(predict(K, TrainData), TestFold, TestLabels),
+        maplist(check_prediction, TestFold, TestLabels, FoldScore)
+    ), FoldScores),
+
+    % Compute the average score over all folds
+    sum_list(FoldScores, TotalScore),
+    length(FoldScores, NumFolds),
+    Score is TotalScore / NumFolds.
+
+% Define the predict function to predict the label of a test instance using KNN
+predict(K, TrainData, Test, Label) :-
+    Test = data(X,Y,Z,W,_),
+    knn(K, X, Y, Z, W, Label, Neighbors),
+    get_neighbors_classes(Neighbors, TrainData, Classes),
+    classify(Classes, Label).
+
+% Helper function to get the classes of the neighbors
+get_neighbors_classes([], _, []).
+get_neighbors_classes([_-Class|T], TrainData, [Class|Classes]) :-
+    member(data(X,Y,Z,W,Class), TrainData),
+    distance(X,Y,Z,W, TestX, TestY, TestZ, TestW, _),
+    distance(X,Y,Z,W, X1,Y1,Z1,W1, Distance),
+    Test = data(TestX,TestY,TestZ,TestW,_),
+    data(X1,Y1,Z1,W1,Class),
+    get_neighbors_classes(T, TrainData, Classes).
+
+% Helper function to check if the prediction is correct
+check_prediction(Test, PredictedLabel, Score) :-
+    Test = data(_,_,_,_,TrueLabel),
+    (PredictedLabel = TrueLabel -> Score = 1 ; Score = 0).
+
+% Helper function to exclude the nth element from a list
+exclude_nth(N, List, Excluded) :-
+    nth0(N, List, _, WithoutNth),
+    append(WithoutNth, Excluded).
