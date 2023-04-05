@@ -57,20 +57,26 @@ count_occurrences(X, [Y|T], N) :- X \= Y, count_occurrences(X, T, N).
 cross_validation(K, Folds, Accuracy) :-
     findall((X,Y,Z,W,Class), data(X,Y,Z,W,Class), Instances),
     random_permutation(Instances, ShuffledInstances),
+    % write('Shuffled Instances: '), writeln(ShuffledInstances), %ShuffledInstances appears to be correct
+    
     length(ShuffledInstances, NumInstances),
     num_folds(NumInstances, Folds, InstancesPerFold, Remainder),
     split_data(ShuffledInstances, Folds, InstancesPerFold, Remainder, SplitData),
+    write('Split Data: '), writeln(SplitData), %SplitData appears to be correct as well
+
     evaluate_folds(SplitData, K, AccuracyList),
+    write('Accuracy List: '), writeln(AccuracyList),
     sum_list(AccuracyList, TotalAccuracy),
     Accuracy is TotalAccuracy / Folds.
 
 % Helper function to split the data into n folds
 % split_data is helper function that splits dataset into n folds
-    % takes dataset, number of fodls to use, number of isntances per fold, 
+    % takes dataset, number of folds to use, number of isntances per fold, 
     % remainder (num instances that couldn't be evenly distributed among the folds)
     % and list of n empty lists representing the folds. first splits dataset into n parts, 
     % each with same number of instances, distributes any remaining evenly among first few folds 
     % retuns a list of n folds
+
 split_data([], _, _, _, []).
 split_data(Instances, Folds, InstancesPerFold, Remainder, [Fold|FoldsList]) :-
     length(Fold, InstancesPerFold),
@@ -92,18 +98,54 @@ num_folds(NumInstances, NumFolds, InstancesPerFold, Remainder) :-
 
 % Helper function to evaluate the accuracy of each fold
 % 1. base case where no more folds need to be evaluated. 
-% 2. recursive cae takes list of folds, K value for knnn, list of accuracies computed so far 
+% 2. recursive cae takes list of folds, K value for knn, list of accuracies computed so far 
 %     use prolog findall to generate list of incorrect calssifications 
-%     use length rpedicate to compute number of incorrect classificatios
+%     use length predicate to compute number of incorrect classifications
 %     finally compute  accuracy, add accuracy to list of accuracies and recursively compute the remaining folds
 
+% evaluate_folds([], _, []).
+% evaluate_folds([TestFold|Folds], K, [Accuracy|Accuracies]) :-
+%     findall((X,Y,Z,W,Class), (member((X,Y,Z,W,Class), TestFold), \+ knn(K,X,Y,Z,W,Class,_)), Incorrect),
+%     length(TestFold, NumTestInstances),
+%     length(Incorrect, NumIncorrect),
+%     Accuracy is 1 - (NumIncorrect / NumTestInstances),
+%     evaluate_folds(Folds, K, Accuracies).
+
+% evaluate_folds([], _, []).
+% evaluate_folds([Fold1, Fold2, Fold3], K, Accuracies) :-
+%     evaluate_fold([Fold2, Fold3], Fold1, K, Acc1),
+%     evaluate_fold([Fold3, Fold1], Fold2, K, Acc2),
+%     evaluate_fold([Fold1, Fold2], Fold3, K, Acc3),
+%     Accuracies = [Acc1, Acc2, Acc3].
+
+%making sure that evlaute folds is giving the right test and train data for each validation (5)
 evaluate_folds([], _, []).
-evaluate_folds([TestFold|Folds], K, [Accuracy|Accuracies]) :-
-    findall((X,Y,Z,W,Class), (member((X,Y,Z,W,Class), TestFold), \+ knn(K,X,Y,Z,W,Class,_)), Incorrect),
+evaluate_folds([Fold1, Fold2, Fold3, Fold4, Fold5], K, Accuracies) :-
+    evaluate_fold([Fold2, Fold3, Fold4, Fold5], Fold1, K, Acc1),
+    evaluate_fold([Fold3, Fold4, Fold5, Fold1], Fold2, K, Acc2),
+    evaluate_fold([Fold4, Fold5, Fold1, Fold2], Fold3, K, Acc3),
+    evaluate_fold([Fold5, Fold1, Fold2, Fold3], Fold4, K, Acc4),
+    evaluate_fold([Fold1, Fold2, Fold3, Fold4], Fold5, K, Acc5),
+    Accuracies = [Acc1, Acc2, Acc3, Acc4, Acc5].
+
+evaluate_fold(TrainingFolds, TestFold, K, Accuracy) :-
+    findall((X,Y,Z,W,Class), (member((X,Y,Z,W,Class), TestFold), 
+    \+ knn_train(K,X,Y,Z,W,Class,_, TrainingFolds)), Incorrect),
     length(TestFold, NumTestInstances),
     length(Incorrect, NumIncorrect),
-    Accuracy is 1 - (NumIncorrect / NumTestInstances),
-    evaluate_folds(Folds, K, Accuracies).
+    Accuracy is 1 - (NumIncorrect / NumTestInstances).
+
+knn_train(K, X, Y, Z, W, Class, Neighbors, TrainingFolds) :-
+    findall(Distance-Class1, (
+        member(TrainingFold, TrainingFolds),
+        member((X1, Y1, Z1, W1, Class1), TrainingFold),
+        distance(X, Y, Z, W, X1, Y1, Z1, W1, Distance)
+    ), Distances),
+    sort(Distances, SortedDistances),
+    take(K, SortedDistances, Nearest),
+    get_neighbors(Nearest, Neighbors),
+    get_classes(Neighbors, Classes),
+    classify(Classes, Class).
 
 
 % Iris dataset
@@ -257,91 +299,3 @@ data(6.3,2.5,5.0,1.9,'Iris-virginica').
 data(6.5,3.0,5.2,2.0,'Iris-virginica').
 data(6.2,3.4,5.4,2.3,'Iris-virginica').
 data(5.9,3.0,5.1,1.8,'Iris-virginica').
-
-
-
-
-% % Define the number of folds for cross-validation
-% num_folds(5).
-
-
-% % Define the cross-validation function
-% cross_validate(K, Score) :-
-%     % Get the number of folds
-%     num_folds(N),
-
-%     % Shuffle the dataset
-%     findall(data(X,Y,Z,W,Class), data(X,Y,Z,W,Class), Data),
-%     random_permutation(Data, ShuffledData),
-
-%     % Divide the dataset into N folds
-%     split_list(ShuffledData, N, Folds),
-
-%     % SOMETHING WRONG HERE, not retunring accurac.y. 
-%     % Evaluate the KNN model on each fold
-%     findall(FoldScore, (
-%         nth0(I, Folds, TestFold),
-%         exclude_nth(I, Folds, TrainFolds),
-%         flatten(TrainFolds, TrainData),
-%         maplist(predict(K, TrainData), TestFold, TestLabels),
-%         maplist(check_prediction, TestFold, TestLabels, FoldScore)
-%         %, format("Fold ~w accuracy: ~w~n", [I, FoldScore])
-%     ), FoldScores),
-
-%     % SOMETHING WRONG HERE, not returning average ACCURACY
-%     % Compute the average score over all folds 
-%     sum_list_of_lists(FoldScores, TotalScore),
-%     length(FoldScores, NumFolds),
-%     Score is TotalScore / NumFolds.
-
-% % sum_list_of_lists
-% sum_list_of_lists(ListOfLists, Sum) :-
-%     flatten(ListOfLists, FlatList),
-%     sum_list(FlatList, Sum).
-
-% % Helper function to exclude the nth element from a list
-% exclude_nth(N, List, Result) :-
-%     length(Prefix, N),
-%     append(Prefix, [_|Suffix], List),
-%     append(Prefix, Suffix, Result).
-
-% % Define the predict function to predict the label of a test instance using KNN
-% predict(K, TrainData, Test, Label) :-
-%     Test = data(X,Y,Z,W,_),
-%     knn(K, X, Y, Z, W, Label, Neighbors),
-%     get_neighbors_classes(Neighbors, TrainData, Classes),
-%     classify(Classes, Label).
-%     % format("Test instance: ~w, Predicted label: ~w~n", [Test, Label]),
-%     % format("Neighbors: ~w~n", [Neighbors]),
-%     % format("Classes: ~w~n", [Classes]).
-
-% % Helper function to get the classes of the neighbors
-% get_neighbors_classes([], _, []).
-% get_neighbors_classes([_-C|T], TrainData, [C|R]) :-
-%     member(data(_,_,_,_,C), TrainData),
-%     get_neighbors_classes(T, TrainData, R).
-% get_neighbors_classes([_-C|T], TrainData, R) :-
-%     \+ member(data(_,_,_,_,C), TrainData),
-%     get_neighbors_classes(T, TrainData, R).
-
-
-% % Helper function to check if the prediction is correct
-% check_prediction(Test, PredictedLabel, Score) :-
-%     Test = data(_,_,_,_,TrueLabel),
-%     (PredictedLabel = TrueLabel -> Score = 1 ; Score = 0).
-
-
-% % Split a list into sublists of equal length
-% split_list(List, NumSublists, Sublists) :-
-%     length(List, NumElements),
-%     ChunkSize is ceil(NumElements / NumSublists),
-%     write('ChunkSize: '), write(ChunkSize), nl,
-%     split_list_helper(List, ChunkSize, Sublists),
-%     write('Sublists: '), write(Sublists), nl.
-
-% split_list_helper([], _, []).
-% split_list_helper(List, ChunkSize, [Head|Sublists]) :-
-%     length(Head, ChunkSize),
-%     append(Head, Tail, List),
-%     write('Head: '), write(Head), nl,
-%     split_list_helper(Tail, ChunkSize, Sublists).
