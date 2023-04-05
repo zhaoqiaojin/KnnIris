@@ -103,14 +103,21 @@ num_folds(NumInstances, NumFolds, InstancesPerFold, Remainder) :-
 %     use length predicate to compute number of incorrect classifications
 %     finally compute  accuracy, add accuracy to list of accuracies and recursively compute the remaining folds
 
-% evaluate_folds([], _, []).
-% evaluate_folds([TestFold|Folds], K, [Accuracy|Accuracies]) :-
-%     findall((X,Y,Z,W,Class), (member((X,Y,Z,W,Class), TestFold), \+ knn(K,X,Y,Z,W,Class,_)), Incorrect),
-%     length(TestFold, NumTestInstances),
-%     length(Incorrect, NumIncorrect),
-%     Accuracy is 1 - (NumIncorrect / NumTestInstances),
-%     evaluate_folds(Folds, K, Accuracies).
+% evaluate_folds(Folds, K, Accuracies) :-
+%     length(Folds, NumFolds),
+%     evaluate_folds_helper(Folds, NumFolds, K, [], Accuracies, NumFolds).
 
+% evaluate_folds_helper(_, 0, _, Accuracies, Accuracies, _).
+% evaluate_folds_helper(Folds, N, K, Acc, Accuracies, NumFolds) :-
+%     N > 0,
+%     evaluate_fold(Folds, Fold, K, Acc1),
+%     N1 is N - 1,
+%     append(Acc, [Acc1], Acc2),
+%     rotate_list(Folds, RotatedFolds),
+%     evaluate_folds_helper(RotatedFolds, N1, K, Acc2, Accuracies, NumFolds).
+
+% rotate_list([H | T], R) :-
+%     append(T, [H], R).
 
 % evaluate_folds([], _, []).
 % evaluate_folds([Fold1, Fold2, Fold3], K, Accuracies) :-
