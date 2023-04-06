@@ -1,5 +1,6 @@
-
-% Define the distance between two instances
+% try:
+% ?- knn(3, 4.0, 3.4, 1.5, 0.2, Class, Neighbors).
+% Define the distance between two instances, euclidian distance
 distance(X1,Y1,Z1,W1,X2,Y2,Z2,W2,Dist) :-
     Dist is sqrt((X1-X2)**2 + (Y1-Y2)**2 + (Z1-Z2)**2 + (W1-W2)**2).
 
@@ -44,34 +45,35 @@ count_occurrences(X, [Y|T], N) :- X \= Y, count_occurrences(X, T, N).
 
 
 % Begin Cross Validation code 
+% Try ?- cross_validation(3, 5, Accuracy).
 % Steps:
-% k_fold_cross_validation perfoms cross validation on the data 
-% knn algorithm, takes in 3 parameters K , Folds (num folds for cv)
-% and accuracy (the average cross validation accuracy score)
+% k_fold_cross_validation perfoms 5-fold cross validation on the data 
     % 1. shuffles dataset 
-    % 2. split into n folds
+    % 2. split into 5 folds
     % 3. for each fold uses the other folds as training data and current fold as test fold 
-    % 4. trains on knn on training set and evaluates of test 
+    % 4. trains using knn on training set and evaluates of test set
     % 5. saves accuracy score over all folds and returns the average. 
 
 cross_validation(K, Folds, Accuracy) :-
     findall((X,Y,Z,W,Class), data(X,Y,Z,W,Class), Instances),
     random_permutation(Instances, ShuffledInstances),
-    % write('Shuffled Instances: '), writeln(ShuffledInstances), %ShuffledInstances appears to be correct
-    
+    % write('Shuffled Instances: '), writeln(ShuffledInstances), % uncomment to view ShuffledInstances 
     length(ShuffledInstances, NumInstances),
     num_folds(NumInstances, Folds, InstancesPerFold, Remainder),
     split_data(ShuffledInstances, Folds, InstancesPerFold, Remainder, SplitData),
-    write('Split Data: '), writeln(SplitData), %SplitData appears to be correct as well
+    % write('Split Data: '), writeln(SplitData), %uncomment to view SplitData
 
     evaluate_folds(SplitData, K, AccuracyList),
-    write('Accuracy List: '), writeln(AccuracyList),
+    write('Accuracy of folds: '), writeln(AccuracyList),
+    standard_deviation(AccuracyList, Std),
+    write('Standard deviation: '), writeln(Std),
     sum_list(AccuracyList, TotalAccuracy),
     Accuracy is TotalAccuracy / Folds.
 
+
 % Helper function to split the data into n folds
 % split_data is helper function that splits dataset into n folds
-    % takes dataset, number of folds to use, number of isntances per fold, 
+    % takes dataset, number of folds to use, number of instances per fold, 
     % remainder (num instances that couldn't be evenly distributed among the folds)
     % and list of n empty lists representing the folds. first splits dataset into n parts, 
     % each with same number of instances, distributes any remaining evenly among first few folds 
@@ -96,29 +98,9 @@ num_folds(NumInstances, NumFolds, InstancesPerFold, Remainder) :-
     Remainder is NumInstances mod NumFolds.
 
 
-% Helper function to evaluate the accuracy of each fold
-% 1. base case where no more folds need to be evaluated. 
-% 2. recursive cae takes list of folds, K value for knn, list of accuracies computed so far 
-%     use prolog findall to generate list of incorrect calssifications 
-%     use length predicate to compute number of incorrect classifications
-%     finally compute  accuracy, add accuracy to list of accuracies and recursively compute the remaining folds
+% Helper function to evaluate the accuracy score of each fold
 
-% evaluate_folds(Folds, K, Accuracies) :-
-%     length(Folds, NumFolds),
-%     evaluate_folds_helper(Folds, NumFolds, K, [], Accuracies, NumFolds).
-
-% evaluate_folds_helper(_, 0, _, Accuracies, Accuracies, _).
-% evaluate_folds_helper(Folds, N, K, Acc, Accuracies, NumFolds) :-
-%     N > 0,
-%     evaluate_fold(Folds, Fold, K, Acc1),
-%     N1 is N - 1,
-%     append(Acc, [Acc1], Acc2),
-%     rotate_list(Folds, RotatedFolds),
-%     evaluate_folds_helper(RotatedFolds, N1, K, Acc2, Accuracies, NumFolds).
-
-% rotate_list([H | T], R) :-
-%     append(T, [H], R).
-
+% 3-fold cross-validation
 % evaluate_folds([], _, []).
 % evaluate_folds([Fold1, Fold2, Fold3], K, Accuracies) :-
 %     evaluate_fold([Fold2, Fold3], Fold1, K, Acc1),
@@ -126,7 +108,7 @@ num_folds(NumInstances, NumFolds, InstancesPerFold, Remainder) :-
 %     evaluate_fold([Fold1, Fold2], Fold3, K, Acc3),
 %     Accuracies = [Acc1, Acc2, Acc3].
 
-%making sure that evlaute folds is giving the right test and train data for each validation (5)
+% 5-fold cross-validation
 evaluate_folds([], _, []).
 evaluate_folds([Fold1, Fold2, Fold3, Fold4, Fold5], K, Accuracies) :-
     evaluate_fold([Fold2, Fold3, Fold4, Fold5], Fold1, K, Acc1),
@@ -143,6 +125,7 @@ evaluate_fold(TrainingFolds, TestFold, K, Accuracy) :-
     length(Incorrect, NumIncorrect),
     Accuracy is 1 - (NumIncorrect / NumTestInstances).
 
+% same knn model but only uses training data when finding neighbors
 knn_train(K, X, Y, Z, W, Class, Neighbors, TrainingFolds) :-
     findall(Distance-Class1, (
         member(TrainingFold, TrainingFolds),
@@ -155,6 +138,24 @@ knn_train(K, X, Y, Z, W, Class, Neighbors, TrainingFolds) :-
     get_classes(Neighbors, Classes),
     classify(Classes, Class).
 
+% Define a predicate to calculate the mean of a list of numbers
+mean(List, Mean) :-
+    sum_list(List, Sum),
+    length(List, Length),
+    Mean is Sum / Length.
+
+% Define a predicate to calculate the sum of the squares of the differences between each number and the mean
+sum_squares_differences(List, Mean, SumSquares) :-
+    maplist({Mean}/[X, Y]>>(Y is (X - Mean) ** 2), List, SquaredDifferences),
+    sum_list(SquaredDifferences, SumSquares).
+
+% Define a predicate to calculate the standard deviation
+standard_deviation(List, StandardDeviation) :-
+    mean(List, Mean),
+    length(List, Length),
+    sum_squares_differences(List, Mean, SumSquares),
+    Variance is SumSquares / (Length - 1),
+    StandardDeviation is sqrt(Variance).
 
 % Iris dataset
 data(5.1,3.5,1.4,0.2,'Iris-setosa').
@@ -307,3 +308,20 @@ data(6.3,2.5,5.0,1.9,'Iris-virginica').
 data(6.5,3.0,5.2,2.0,'Iris-virginica').
 data(6.2,3.4,5.4,2.3,'Iris-virginica').
 data(5.9,3.0,5.1,1.8,'Iris-virginica').
+
+
+% evaluate_folds(Folds, K, Accuracies) :-
+%     length(Folds, NumFolds),
+%     evaluate_folds_helper(Folds, NumFolds, K, [], Accuracies, NumFolds).
+
+% evaluate_folds_helper(_, 0, _, Accuracies, Accuracies, _).
+% evaluate_folds_helper(Folds, N, K, Acc, Accuracies, NumFolds) :-
+%     N > 0,
+%     evaluate_fold(Folds, Fold, K, Acc1),
+%     N1 is N - 1,
+%     append(Acc, [Acc1], Acc2),
+%     rotate_list(Folds, RotatedFolds),
+%     evaluate_folds_helper(RotatedFolds, N1, K, Acc2, Accuracies, NumFolds).
+
+% rotate_list([H | T], R) :-
+%     append(T, [H], R).
