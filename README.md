@@ -1,6 +1,8 @@
 # kNN Classification of the Iris Dataset
 
-Foobar is a Python library for dealing with word pluralization.
+We created a kNN model on the iris dataset using all four features to predict the species (class) of the iris. The kNN model can take an arbitrary user defiend k-neighbors and compute the most common class of the neighbros as the predicted class. In the case that there is a tie between two classes for neighbor instances, the typing class with the smallest distance to the given prediction data will be returned. 
+
+For our "extra" of this project, we created a cross-validation test on our kNN model by splitting the iris dataset into test set and training sets to compute the average accuracy score of the fold and also list out the accuracies of each fold as well as the standard deviation. 
 
 ## Overview
 
@@ -66,7 +68,16 @@ Accuracy = 0.9466666666666667 .
 
 ## Improvements:
 
+* Make a visual representation of the iris dataset by plotting a scatterplot and color coding the classes 
+    * Because there are 4 features, we can first perform PCA on the dataset and then visualize
+* Due to time constraints we did not perform any preprocessing on the original dataset before implementing our kNN model. Although the features were generally on the same scale, it would have been better to perform preprocessing such as standard scalar on the four features before creating the kNN model. 
+
 ## Key Takeaways:
+
+* Prolog is a powerful programming language that is well-suited for implementing some machine learning algorithms, although lacking in many built in functions such as the ones found in python's scikit-learn library (such as preprocessing of data or PCA) being able to code the kNN model directly and explicitly in prolog was very rewarding
+* KNN is a simple yet effective machine learning algorithm that can be used for classification and regression tasks, our model generally performed at 96% cross-validation accuracy score for a neighbours value of 3.
+* You can make predicates in Prolog that can be used to generate a list of solutions to a query like the findall predicate in our project. Another important takeaway is the use of Prolog's built-in predicates, such as findall, sort, and length, to perform operations on lists of data points.
+* We also learned how to perform cross-validation to evaluate the performance of the model. It was interesting to compute cross-validation accuracy score from scratch in Prolog without relying on built-in libraries such as the scikit-learn library in Python. Cross-validation is a widely used technique for evaluating machine learning models, as it provides a more accurate estimate of the model's performance than a simple train-test split. To make sure our model was performing correctly, used the cross-validation scores for different k values and folds from our prolog project and compared to the ones produced by python scikit-learn library. They complemented each other with minor differences due to the ransom shuffling of data when performing the splits, meaning that our kNN model works as expected.
 
 ## Acknowledgements
 
