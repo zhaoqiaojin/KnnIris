@@ -1,6 +1,12 @@
 % try:
 % ?- knn(3, 4.0, 3.4, 1.5, 0.2, Class, Neighbors).
 % Define the distance between two instances, euclidian distance
+% X = Sepal Length 
+% Y = Sepal Width 
+% Z = Petal Length 
+% W = Petal Width 
+% Class = Species
+
 distance(X1,Y1,Z1,W1,X2,Y2,Z2,W2,Dist) :-
     Dist is sqrt((X1-X2)**2 + (Y1-Y2)**2 + (Z1-Z2)**2 + (W1-W2)**2).
 

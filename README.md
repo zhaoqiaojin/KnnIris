@@ -29,7 +29,7 @@ data(4.9,3.0,1.4,0.2,'Iris-setosa').
 
 **kNN Classification**
 
-Call to knn function takes K (k neighbors), the four features X, Y, Z, W, and outputs the predicted Class and list of k-neighbors with distances rounded to 3 decimal places and well as neighbor's class. 
+Call to knn function takes K (k neighbors), the four features (X = Sepal Length), (Y = Sepal Width), (Z = Petla Length), (W = Petal Width), and outputs the predicted Class/Species and list of k-neighbors with distances rounded to 3 decimal places and well as neighbor's class. 
 
 ``` prolog 
 knn(K,X,Y,Z,W,Class,Neighbors):-
