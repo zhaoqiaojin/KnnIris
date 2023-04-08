@@ -85,6 +85,19 @@
 
 :- end_tests(count_occurrences_test).
 
+:- begin_tests(classify_test).
+
+    test(same_count, [nondet]) :-
+        classify([a, b, c], c).
+
+    test(one_element_list, [nondet]) :-
+        classify([a], a).
+
+    test(multiple_most_frequent, [nondet]) :-
+        classify([a, b, a, c], c).
+
+:- end_tests(classify_test).
+
 :- begin_tests(get_most_frequent_test).
 
     test(single_element, [nondet]) :-
@@ -110,17 +123,3 @@
         get_classes([2-'Iris-setosa', 3-'Iris-versicolor', 4-'Iris-setosa'], ['Iris-setosa', 'Iris-versicolor', 'Iris-setosa']).
 
 :- end_tests(get_classes_test).
-
-
-:- begin_tests(classify_test).
-
-    test(same_count, [nondet]) :-
-        classify(['Iris-setosa', 'Iris-virginica', 'Iris-versicolor'], 'Iris-setosa').
-
-    test(one_element_list, [nondet]) :-
-        classify(['Iris-setosa'], 'Iris-setosa').
-
-    test(multiple_most_frequent, [nondet]) :-
-        classify(['Iris-setosa', 'Iris-versicolor', 'Iris-virginica', 'Iris-setosa'], 'Iris-setosa').
-
-:- end_tests(classify_test).
