@@ -38,8 +38,7 @@ get_classes([_-C|T], [C|R]) :- get_classes(T, R).
 % Define the classify function to return the most frequent class in the neighbors
 classify(Neighbors, Class) :-
     sort(Neighbors, SortedNeighbors),
-    reverse(SortedNeighbors, ReverseNeighbors),
-    get_most_frequent(ReverseNeighbors, Class).
+    get_most_frequent(SortedNeighbors, Class).
 
 % Helper function to get the most frequent element in a list
 get_most_frequent([H|T], H) :- count_occurrences(H, [H|T], Count), \+ (member(X, T), count_occurrences(X, [H|T], Count1), Count1 > Count).
@@ -152,7 +151,7 @@ sum_squares_differences(List, Mean, SumSquares) :-
 
 % Define a predicate to calculate the standard deviation
 standard_deviation([], 0) :- !.
-standard_deviation([X], 0) :- !.
+standard_deviation([], 0) :- !.
 standard_deviation(List, StandardDeviation) :-
     mean(List, Mean),
     length(List, Length),
