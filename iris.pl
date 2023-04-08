@@ -1,3 +1,4 @@
+
 % try:
 % ?- knn(3, 4.0, 3.4, 1.5, 0.2, Class, Neighbors).
 % Define the distance between two instances, euclidian distance
@@ -115,12 +116,14 @@ evaluate_folds([Fold1, Fold2, Fold3, Fold4, Fold5], K, Accuracies) :-
     evaluate_fold([Fold1, Fold2, Fold3, Fold4], Fold5, K, Acc5),
     Accuracies = [Acc1, Acc2, Acc3, Acc4, Acc5].
 
+
 evaluate_fold(TrainingFolds, TestFold, K, Accuracy) :-
     findall((X,Y,Z,W,Class), (member((X,Y,Z,W,Class), TestFold), 
     \+ knn_train(K,X,Y,Z,W,Class,_, TrainingFolds)), Incorrect),
     length(TestFold, NumTestInstances),
     length(Incorrect, NumIncorrect),
     Accuracy is 1 - (NumIncorrect / NumTestInstances).
+
 
 % same knn model but only uses training data when finding neighbors
 knn_train(K, X, Y, Z, W, Class, Neighbors, TrainingFolds) :-
@@ -136,6 +139,7 @@ knn_train(K, X, Y, Z, W, Class, Neighbors, TrainingFolds) :-
     classify(Classes, Class).
 
 % Define a predicate to calculate the mean of a list of numbers
+mean([], 0).
 mean(List, Mean) :-
     sum_list(List, Sum),
     length(List, Length),
@@ -147,6 +151,8 @@ sum_squares_differences(List, Mean, SumSquares) :-
     sum_list(SquaredDifferences, SumSquares).
 
 % Define a predicate to calculate the standard deviation
+standard_deviation([], 0) :- !.
+standard_deviation([X], 0) :- !.
 standard_deviation(List, StandardDeviation) :-
     mean(List, Mean),
     length(List, Length),

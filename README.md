@@ -65,6 +65,14 @@ Standard deviation: 0.03800584750330459
 Accuracy = 0.9466666666666667 .
 ```
 
+**Running Unit-Tests**
+
+```bash
+swipl
+?- [test].
+?- run_tests.
+```
+
 
 ## Improvements:
 
