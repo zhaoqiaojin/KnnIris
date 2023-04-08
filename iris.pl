@@ -51,7 +51,7 @@ count_occurrences(X, [Y|T], N) :- X \= Y, count_occurrences(X, T, N).
 
 
 % Begin Cross Validation code 
-% Try ?- cross_validation(3, 5, Accuracy).
+% Try ?- cross_validation(3, Accuracy).
 % Steps:
 % k_fold_cross_validation perfoms 5-fold cross validation on the data 
     % 1. shuffles dataset 
@@ -60,22 +60,22 @@ count_occurrences(X, [Y|T], N) :- X \= Y, count_occurrences(X, T, N).
     % 4. trains using knn on training set and evaluates of test set
     % 5. saves accuracy score over all folds and returns the average. 
 
-cross_validation(K, Folds, Accuracy) :-
-    findall((X,Y,Z,W,Class), data(X,Y,Z,W,Class), Instances),
-    random_permutation(Instances, ShuffledInstances),
-    % write('Shuffled Instances: '), writeln(ShuffledInstances), % uncomment to view ShuffledInstances 
-    length(ShuffledInstances, NumInstances),
-    num_folds(NumInstances, Folds, InstancesPerFold, Remainder),
-    split_data(ShuffledInstances, Folds, InstancesPerFold, Remainder, SplitData),
-    % write('Split Data: '), writeln(SplitData), %uncomment to view SplitData
-
-    evaluate_folds(SplitData, K, AccuracyList),
-    write('Accuracy of folds: '), writeln(AccuracyList),
-    standard_deviation(AccuracyList, Std),
-    write('Standard deviation: '), writeln(Std),
-    sum_list(AccuracyList, TotalAccuracy),
-    Accuracy is TotalAccuracy / Folds.
-
+    cross_validation(K, Accuracy) :-
+        Folds = 5, % Set Folds to 5
+        findall((X,Y,Z,W,Class), data(X,Y,Z,W,Class), Instances),
+        random_permutation(Instances, ShuffledInstances),
+        % write('Shuffled Instances: '), writeln(ShuffledInstances), % uncomment to view ShuffledInstances 
+        length(ShuffledInstances, NumInstances),
+        num_folds(NumInstances, Folds, InstancesPerFold, Remainder),
+        split_data(ShuffledInstances, Folds, InstancesPerFold, Remainder, SplitData),
+        % write('Split Data: '), writeln(SplitData), %uncomment to view SplitData
+    
+        evaluate_folds(SplitData, K, AccuracyList),
+        write('Accuracy of folds: '), writeln(AccuracyList),
+        standard_deviation(AccuracyList, Std),
+        write('Standard deviation: '), writeln(Std),
+        sum_list(AccuracyList, TotalAccuracy),
+        Accuracy is TotalAccuracy / Folds.
 
 % Helper function to split the data into n folds
 % split_data is helper function that splits dataset into n folds
@@ -105,15 +105,6 @@ num_folds(NumInstances, NumFolds, InstancesPerFold, Remainder) :-
 
 
 % Helper function to evaluate the accuracy score of each fold
-
-% 3-fold cross-validation
-% evaluate_folds([], _, []).
-% evaluate_folds([Fold1, Fold2, Fold3], K, Accuracies) :-
-%     evaluate_fold([Fold2, Fold3], Fold1, K, Acc1),
-%     evaluate_fold([Fold3, Fold1], Fold2, K, Acc2),
-%     evaluate_fold([Fold1, Fold2], Fold3, K, Acc3),
-%     Accuracies = [Acc1, Acc2, Acc3].
-
 % 5-fold cross-validation
 evaluate_folds([], _, []).
 evaluate_folds([Fold1, Fold2, Fold3, Fold4, Fold5], K, Accuracies) :-
@@ -315,19 +306,3 @@ data(6.5,3.0,5.2,2.0,'Iris-virginica').
 data(6.2,3.4,5.4,2.3,'Iris-virginica').
 data(5.9,3.0,5.1,1.8,'Iris-virginica').
 
-
-% evaluate_folds(Folds, K, Accuracies) :-
-%     length(Folds, NumFolds),
-%     evaluate_folds_helper(Folds, NumFolds, K, [], Accuracies, NumFolds).
-
-% evaluate_folds_helper(_, 0, _, Accuracies, Accuracies, _).
-% evaluate_folds_helper(Folds, N, K, Acc, Accuracies, NumFolds) :-
-%     N > 0,
-%     evaluate_fold(Folds, Fold, K, Acc1),
-%     N1 is N - 1,
-%     append(Acc, [Acc1], Acc2),
-%     rotate_list(Folds, RotatedFolds),
-%     evaluate_folds_helper(RotatedFolds, N1, K, Acc2, Accuracies, NumFolds).
-
-% rotate_list([H | T], R) :-
-%     append(T, [H], R).
