@@ -2,7 +2,7 @@
 
 We created a kNN model on the iris dataset using all four features to predict the species (class) of the iris. The kNN model can take an arbitrary user defiend k-neighbors and compute the most common class of the neighbros as the predicted class. In the case that there is a tie between two classes for neighbor instances, the typing class with the smallest distance to the given prediction data will be returned. 
 
-For our "extra" of this project, we created a cross-validation test on our kNN model by splitting the iris dataset into test set and training sets to compute the average accuracy score of the fold and also list out the accuracies of each fold as well as the standard deviation. 
+For our "extra" of this project, we created a 5-fold cross-validation test on our kNN model by splitting the iris dataset into test set and training sets to compute the average accuracy score of the fold and also list out the accuracies of each fold as well as the standard deviation. 
 
 ## Overview
 
@@ -52,14 +52,14 @@ also try:
 
 **Cross-validation Score**
 
-Call to cross_validation takes K (k-neighbors), Folds (num folds) and outpput list of the accuracies of each fold, standard deviation of accuracies, and finally average accuracy across folds. 
+Call to cross_validation takes K (k-neighbors), and calculates the 5-fold cross validation score. Funciton outputs list of the accuracies of each fold, standard deviation of accuracies, and finally average accuracy across the 5 folds. We chose to perform a 5-fold cross validation as the dataset size is 150 instances meaning a 5-fold cross validation woudl each have a test set of 30 instances which is a very reasonable amount. 
 
 ``` prolog 
-cross_validation(K, Folds, Accuracy) :-
+cross_validation(K, Accuracy) :-
 ```
 
 ```bash 
-?- cross_validation(3, 5, Accuracy). 
+?- cross_validation(3,  Accuracy). 
 Accuracy of folds: [0.9,1,0.9333333333333333,0.9666666666666667,0.9333333333333333]
 Standard deviation: 0.03800584750330459
 Accuracy = 0.9466666666666667 .
