@@ -151,7 +151,7 @@ sum_squares_differences(List, Mean, SumSquares) :-
 
 % Define a predicate to calculate the standard deviation
 standard_deviation([], 0) :- !.
-standard_deviation([], 0) :- !.
+standard_deviation([X], 0) :- !.
 standard_deviation(List, StandardDeviation) :-
     mean(List, Mean),
     length(List, Length),

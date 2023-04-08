@@ -88,13 +88,13 @@
 :- begin_tests(classify_test).
 
     test(same_count, [nondet]) :-
-        classify([a, b, c], c).
+        classify([a, b, c], a).
 
     test(one_element_list, [nondet]) :-
         classify([a], a).
 
     test(multiple_most_frequent, [nondet]) :-
-        classify([a, b, a, c], c).
+        classify([a, b, a, c], a).
 
 :- end_tests(classify_test).
 
