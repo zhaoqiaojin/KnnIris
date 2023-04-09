@@ -123,3 +123,24 @@
         get_classes([2-'Iris-setosa', 3-'Iris-versicolor', 4-'Iris-setosa'], ['Iris-setosa', 'Iris-versicolor', 'Iris-setosa']).
 
 :- end_tests(get_classes_test).
+
+% knn(K_val, pred1, pred2, pred3, pred4, pred_label, list of neighbors)
+:- begin_tests(knn_test).
+
+    test(base_case, [nondet]) :-
+        knn(3, 4.0, 3.4, 1.5, 0.2, 
+            'Iris-setosa', 
+            ['0.490'-'Iris-setosa', '0.600'-'Iris-setosa', '0.616'-'Iris-setosa']).
+
+    test(overfit_case, [nondet]) :-
+        knn(1, 5.1, 3.5, 1.4, 0.2, 
+            'Iris-setosa', 
+            ['0.000'-'Iris-setosa']).
+
+    test(underfit_case_1, [nondet]) :-
+        knn(150, 100, 10, 1, 1, 'Iris-setosa', ['92.472'-'Iris-virginica' | _]).
+
+    test(underfit_case_2, [nondet]) :-
+        knn(150, 5.1, 3.5, 1.4, 0.2,  'Iris-setosa', ['0.000'-'Iris-setosa' | _]).
+
+:- end_tests(knn_test).
