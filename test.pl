@@ -143,4 +143,7 @@
     test(underfit_case_2, [nondet]) :-
         knn(150, 5.1, 3.5, 1.4, 0.2,  'Iris-setosa', ['0.000'-'Iris-setosa' | _]).
 
+    test(underfit_case_3, [nondet]) :-
+        knn(151, 5.1, 3.5, 1.4, 0.2,  'Iris-setosa', ['0.000'-'Iris-setosa' | _]).
+
 :- end_tests(knn_test).
